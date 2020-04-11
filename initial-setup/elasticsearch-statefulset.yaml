@@ -5,7 +5,7 @@ metadata:
   namespace: kube-logging
 spec:
   serviceName: elasticsearch
-  replicas: 3
+  replicas: 2
   selector:
     matchLabels:
       app: elasticsearch
@@ -71,7 +71,6 @@ spec:
         app: elasticsearch
     spec:
       accessModes: [ "ReadWriteOnce" ]
-      storageClassName: do-block-storage
       resources:
         requests:
           storage: 100Gi
