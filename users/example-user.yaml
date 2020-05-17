@@ -1,0 +1,61 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: example-user-service-account
+  namespace: example-user
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: edit-example-user-rb
+  namespace: example-user
+subjects:
+- kind: User
+  name: example-user
+  apiGroup: ""
+- kind: ServiceAccount
+  name: example-user
+  apiGroup: ""
+roleRef:
+  kind: ClusterRole
+  name: edit
+  apiGroup: ""
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: view-logs-example-user-rb
+  namespace: kube-logging
+subjects:
+- kind: User
+  name: example-user
+  apiGroup: ""
+roleRef:
+  kind: ClusterRole
+  name: view
+  apiGroup: ""
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: example-user
+  name: example-user-ci-role
+rules:
+- apiGroups: ["", "apps", "extensions"]
+  resources: ["services", "deployments", "ingresses"]
+  verbs: ["create", "update", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: example-user-ci-rb
+  namespace: example-user
+subjects:
+- kind: User
+  name: example-user-ci
+  apiGroup: ""
+roleRef:
+  kind: Role
+  name: example-user-ci-role
+  apiGroup: ""
+---

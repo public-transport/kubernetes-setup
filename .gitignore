@@ -1,2 +1,2 @@
 .DS_Store
-*credentials.yaml
+.kubeconfig*.yaml
