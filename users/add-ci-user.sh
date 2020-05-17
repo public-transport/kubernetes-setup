@@ -51,8 +51,8 @@ metadata:
   namespace: $USERNM_OP
   name: $USERNM-role
 rules:
-- apiGroups: [\"\"]
-  resources: [\"services\", \"deployments\", \"ingresses\", \"networking.k8s.io\"]
+- apiGroups: [\"\", \"apps\", \"extensions\", \"networking.k8s.io\"]
+  resources: [\"services\", \"deployments\", \"ingresses\"]
   verbs: [\"create\", \"update\", \"patch\", \"list\", \"get\", \"watch\"]
 ---" > $TEMP_DIR/$USERNM-role.yaml
 kubectl apply -f $TEMP_DIR/$USERNM-role.yaml

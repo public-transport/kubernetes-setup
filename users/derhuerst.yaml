@@ -55,8 +55,8 @@ metadata:
   namespace: derhuerst
   name: derhuerst-ci-role
 rules:
-- apiGroups: [""]
-  resources: ["services", "deployments", "ingresses", "networking.k8s.io"]
+- apiGroups: ["", "apps", "extensions", "networking.k8s.io"]
+  resources: ["services", "deployments", "ingresses"]
   verbs: ["create", "update", "patch", "list", "get", "watch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
