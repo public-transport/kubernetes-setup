@@ -1,13 +1,12 @@
 #!/bin/bash
 set -e # exit on error
 
-# see also: https://www.digitalocean.com/community/tutorials/recommended-steps-to-secure-a-digitalocean-kubernetes-cluster
-
-USERNM=$1
-if [ -z "$USERNM" ]; then
+USERNM_OP=$1
+if [ -z "$USERNM_OP" ]; then
     echo "Please specify a user."
 	exit 1
 fi
+USERNM=$USERNM_OP"-ci"
 
 # create a temporary directory for storing the key/csr files
 TEMP_DIR=$(dirname "$0")/temp
@@ -17,7 +16,7 @@ mkdir -p $TEMP_DIR
 openssl genrsa -out $TEMP_DIR/$USERNM.key 4096
 
 # configure the certificate signing request
-openssl req -new -newkey rsa:4096 -nodes -keyout $TEMP_DIR/$USERNM.key -out $TEMP_DIR/$USERNM.csr -subj "/CN=$USERNM/O=known-developers"
+openssl req -new -newkey rsa:4096 -nodes -keyout $TEMP_DIR/$USERNM.key -out $TEMP_DIR/$USERNM.csr -subj "/CN=$USERNM/O=known-developers-ci"
 
 # send and approve the certificate signing request
 AUTH_NAME="$USERNM-authentication"
@@ -41,55 +40,39 @@ kubectl certificate approve $AUTH_NAME
 USER_CRT=$(kubectl get csr $AUTH_NAME -o jsonpath='{.status.certificate}')
 
 # create a namespace for the user (if it doesn't exist yet)
-kubectl create namespace $USERNM --dry-run -o yaml | kubectl apply -f -
+kubectl create namespace $USERNM_OP --dry-run -o yaml | kubectl apply -f -
 
-# create a service account for the namespace
-echo "apiVersion: v1
-kind: ServiceAccount
+# create a ci role for the user's namespace
+echo "apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
 metadata:
-  name: $USERNM-service-account
-  namespace: $USERNM
----" > $TEMP_DIR/$USERNM-service-account.yaml
-kubectl apply -f $TEMP_DIR/$USERNM-service-account.yaml
-cat $TEMP_DIR/$USERNM-service-account.yaml >> $(dirname "$0")/$USERNM.yaml
+  namespace: $USERNM_OP
+  name: $USERNM-role
+rules:
+- apiGroups: [\"\"]
+  resources: [\"services\", \"deployments\", \"ingresses\"]
+  verbs: [\"create\", \"update\", \"list\"]
+---" > $TEMP_DIR/$USERNM-role.yaml
+kubectl apply -f $TEMP_DIR/$USERNM-role.yaml
+cat $TEMP_DIR/$USERNM-role.yaml >> $(dirname "$0")/$USERNM_OP.yaml
 
-# create the rolebindings for the user and service account
+# create the rolebinding
 echo "apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: edit-$USERNM-rb
-  namespace: $USERNM
-subjects:
-- kind: User
-  name: $USERNM
-  apiGroup: \"\"
-- kind: ServiceAccount
-  name: $USERNM
-  apiGroup: \"\"
-roleRef:
-  kind: ClusterRole
-  name: edit
-  apiGroup: \"\"
----" > $TEMP_DIR/edit-$USERNM-rb.yaml
-kubectl apply -f $TEMP_DIR/edit-$USERNM-rb.yaml
-cat $TEMP_DIR/edit-$USERNM-rb.yaml >> $(dirname "$0")/$USERNM.yaml
-
-echo "apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: view-logs-$USERNM-rb
-  namespace: kube-logging
+  name: $USERNM-rb
+  namespace: $USERNM_OP
 subjects:
 - kind: User
   name: $USERNM
   apiGroup: \"\"
 roleRef:
-  kind: ClusterRole
-  name: view
+  kind: Role
+  name: $USERNM-role
   apiGroup: \"\"
----" > $TEMP_DIR/view-logs-$USERNM-rb.yaml
-kubectl apply -f $TEMP_DIR/view-logs-$USERNM-rb.yaml
-cat $TEMP_DIR/view-logs-$USERNM-rb.yaml >> $(dirname "$0")/$USERNM.yaml
+---" > $TEMP_DIR/$USERNM-rb.yaml
+kubectl apply -f $TEMP_DIR/$USERNM-rb.yaml
+cat $TEMP_DIR/$USERNM-rb.yaml >> $(dirname "$0")/$USERNM_OP.yaml
 
 # read certificate authority from the local kubeconfig
 K8S_CONTEXT=$(kubectl config view --minify -o jsonpath='{.current-context}' --raw)

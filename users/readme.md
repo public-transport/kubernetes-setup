@@ -2,16 +2,50 @@
 
 Everyone who makes deployments on our shared kubernetes cluster has a specific **namespace** and a corresponding **user** and **service account** which have edit permissions on that namespace. Furthermore, the user also has view permissions on the namespace for our logging infrastracture. Keep in mind that **everyone can read the logs for every namespace**.
 
-If you would like to deploy applications on our shared cluster, get in touch with [Julius](https://github.com/juliuste).
+## Obtaining user credentials
 
-## Adding a user
-
-To add a user `some-username`, a person with admin access to the cluster needs to run the script [`./add-user.sh`](./add-user.sh), which can be used as follows:
+If you would like to deploy applications on our shared cluster, get in touch with [Julius](https://github.com/juliuste), who can create a `.kubeconfig` file for you, which can then be used via the `kubectl` command:
 
 ```bash
-./add-user.sh <some-unique-user-name>
+kubectl --kubeconfig .kubeconfig.yaml get services --namespace <your-namespace>
 ```
 
-This will create a key/certificate pair for a new user with the given name (output to `some-username-credentials.yaml`), that this user can then use in their kubeconfig\*. As stated before, the script also sets up a namespace and service account named `some-username` and `some-username-service-account`, respectively. The resource definitions for these namespaces and service accounts, as well as the corresponding role bindings, can then be found in `some-username.yaml` in this directory.
+Note that you should use a different set of credentials in your CI. Have a look at the section [obtaining CI credentials](#obtaining-ci-credentials) below.
 
-*\*Note that these credentials are valid for one year and need to be re-generated afterwards.*
+### How to create a kubeconfig (relevant for admins only)
+
+To add a user `some-username` and generate a kubeconfig for them, a person with admin access to the cluster needs to run the script [`./add-user.sh`](./add-user.sh), which can be used as follows:
+
+```bash
+./add-user.sh <some-username>
+```
+
+This will set up a namespace and service account named `some-username` and `some-username-service-account`, respectively. The resource definitions for all created objects will be placed at `./some-username.yaml` and should be committed to this git repository.
+
+Furthermore, the script also creates a kubeconfig file `./.kubeconfig-some-username.yaml`, which will contain the credentials for the newly created user and should be handed over to them. Note that server information (url, public certificate) for the cluster will be copied from your kubeconfig's *currentContext*, so please point the context to the correct cluster before running the script.
+
+*Note that the generated credentials are valid for one year and need to be re-generated afterwards.*
+
+## Obtaining CI credentials
+
+While you may use your user credentials for deploying from a CI, it is advised to use separate credentials for that, which have a more restricted set of permissions (currently only *list*, *create* and *update* for *services*, *deployments* and *ingresses* on your namespace, while your user account has generic edit permissions (including *delete*) for all resource types on that namespace).
+
+To obtain such a set of credentials, get in touch with [Julius](https://github.com/juliuste), who can create a `.kubeconfig` file for you, which can then be used via the `kubectl` command in your ci:
+
+```bash
+kubectl --kubeconfig .kubeconfig.yaml get services --namespace <your-namespace>
+```
+
+### How to create a CI kubeconfig (relevant for admins only)
+
+Given an existing user `some-username`, you can generate a kubeconfig for their CI using the script [`./add-user.sh`](./add-user.sh), which can be used as follows:
+
+```bash
+./add-ci-user.sh <some-username>
+```
+
+This will create a new user `some-username-ci` with restricted permissions (check the details in the section above), and appends all new resource definitions to the existing `some-username.yaml` in this directory, which should be committed to the git repository.
+
+Furthermore, the script also creates a kubeconfig file `./.kubeconfig-some-username-ci.yaml`, which will contain the credentials for the newly created CI user. Note that server information (url, public certificate) for the cluster will be copied from your kubeconfig's *currentContext*, so please point the context to the correct cluster before running the script.
+
+*Note that the generated credentials are valid for one year and need to be re-generated afterwards.*
