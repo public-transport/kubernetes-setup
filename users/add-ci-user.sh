@@ -36,6 +36,8 @@ spec:
 echo "$CSR_K8S" | kubectl apply -f -
 kubectl certificate approve $AUTH_NAME
 
+sleep 5;
+
 # store the user certificate in a temporary file
 USER_CRT=$(kubectl get csr $AUTH_NAME -o jsonpath='{.status.certificate}')
 
