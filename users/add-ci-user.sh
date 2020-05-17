@@ -50,8 +50,8 @@ metadata:
   name: $USERNM-role
 rules:
 - apiGroups: [\"\"]
-  resources: [\"services\", \"deployments\", \"ingresses\"]
-  verbs: [\"create\", \"update\", \"list\"]
+  resources: [\"services\", \"deployments\", \"ingresses\", \"networking.k8s.io\"]
+  verbs: [\"create\", \"update\", \"patch\", \"list\", \"get\", \"watch\"]
 ---" > $TEMP_DIR/$USERNM-role.yaml
 kubectl apply -f $TEMP_DIR/$USERNM-role.yaml
 cat $TEMP_DIR/$USERNM-role.yaml >> $(dirname "$0")/$USERNM_OP.yaml

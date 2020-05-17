@@ -28,7 +28,7 @@ Furthermore, the script also creates a kubeconfig file `./.kubeconfig-some-usern
 
 ## Obtaining CI credentials
 
-While you may use your user credentials for deploying from a CI, it is advised to use separate credentials for that, which have a more restricted set of permissions (currently only *list*, *create* and *update* for *services*, *deployments* and *ingresses* on your namespace, while your user account has generic edit permissions (including *delete*) for all resource types on that namespace).
+While you may use your user credentials for deploying from a CI, it is advised to use separate credentials for that, which have a more restricted set of permissions (currently only *get*, *list*, *watch*, *create*, *update* and *patch* for *services*, *deployments* and *ingresses* on your namespace, while your user account has generic edit permissions (including *delete*) for all resource types on that namespace).
 
 To obtain such a set of credentials, get in touch with [Julius](https://github.com/juliuste), who can create a `.kubeconfig` file for you, which can then be used via the `kubectl` command in your ci:
 
