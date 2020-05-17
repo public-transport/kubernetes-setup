@@ -36,6 +36,20 @@ roleRef:
   apiGroup: ""
 ---
 apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: port-forward-logs-example-user-rb
+  namespace: kube-logging
+subjects:
+- kind: User
+  name: example-user
+  apiGroup: ""
+roleRef:
+  kind: Role
+  name: log-port-forward
+  apiGroup: ""
+---
+apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   namespace: example-user
