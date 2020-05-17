@@ -2,6 +2,8 @@
 
 Initial configuration for our shared Kubernetes cluster, deployed on Scaleway. For a full deployment example with CI, check out the [example-deployment](https://github.com/public-transport/example-deployment).
 
+**Note that, if you deploy something on our cluster, you commit to the [code of conduct](./code-of-conduct.md).**
+
 [![License](https://img.shields.io/github/license/public-transport/kubernetes-setup.svg?style=flat)](license)
 
 This repository contains scripts to set up a Kubernetes cluster with
