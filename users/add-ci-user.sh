@@ -84,6 +84,6 @@ SERVER_DATA=$(kubectl config view --minify -o jsonpath='{.clusters[?(@.name == "
 
 KEY_DATA=$(cat $TEMP_DIR/$USERNM.key | base64 | tr -d '\n')
 
-sed -e "s|<USER>|$USERNM|" -e "s|<KEY>|$KEY_DATA|" -e "s|<CERTIFICATE>|$USER_CRT|" -e "s|<CA>|$CA_DATA|" -e "s|<SERVER>|$SERVER_DATA|" $(dirname "$0")/kubeconfig-template.yaml > $(dirname "$0")/.kubeconfig-$USERNM.yaml
+sed -e "s|<USER>|$USERNM|" -e "s|<NAMESPACE>|$USERNM_OP|" -e "s|<KEY>|$KEY_DATA|" -e "s|<CERTIFICATE>|$USER_CRT|" -e "s|<CA>|$CA_DATA|" -e "s|<SERVER>|$SERVER_DATA|" $(dirname "$0")/kubeconfig-template.yaml > $(dirname "$0")/.kubeconfig-$USERNM.yaml
 
 rm -rf $TEMP_DIR
