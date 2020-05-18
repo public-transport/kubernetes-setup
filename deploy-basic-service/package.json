@@ -25,7 +25,7 @@
 		"@zeit/ncc": "^0.22.1"
 	},
 	"scripts": {
-		"build": "ncc build -s index.js -o dist",
+		"build": "ncc build index.js -o dist",
 		"package": "npm run build"
 	}
 }
