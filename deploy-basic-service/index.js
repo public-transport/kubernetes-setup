@@ -8,9 +8,9 @@ const {
 } = require('@actions/core')
 const last = require('lodash/last')
 const {exec} = require('@actions/exec')
+const glob = require('@actions/glob')
 const {readFileSync, writeFileSync} = require('fs')
 const {join: pJoin} = require('path')
-const {parseAllDocuments: parseYaml} = require('yaml')
 
 const {
 	GITHUB_REPOSITORY,
@@ -40,42 +40,37 @@ const pushImageToHub = async (user, token, tag) => {
     await exec('docker', ['push', tag])
 }
 
-const _k8sMapGet = (map, key) => {
-	for (const item of map.items) {
-		if (item.type !== 'PAIR') continue
-		if (item.key.value === key) return item.value
-	}
-	return null
-}
-
 const deployToK8s = async (kubeconfig, imageId) => {
-    const rawSvc = readFileSync(pJoin(DIR, 'kubernetes.yaml'), {encoding: 'utf8'})
-    const svc = rawSvc.replace('<IMAGE>', imageId)
+	const pKubecfg = pJoin(DIR, '.kubeconfig')
+	await writeFileSync(pKubecfg, kubeconfig)
 
-    const objects = parseYaml(svc).map(doc => doc.contents)
-    const deployment = objects.find((obj) => {
-    	const v = _k8sMapGet(obj, 'apiVersion')
-    	const k = _k8sMapGet(obj, 'kind')
-		return (
-			v && v.value === 'apps/v1' &&
-			k && k.value === 'Deployment'
-		)
-    })
-    if (!deployment) throw new Error('k8s Deployment not found')
-    const metadata = _k8sMapGet(deployment, 'metadata')
-    if (!metadata) throw new Error('invalid k8s Deployment')
-    const name = _k8sMapGet(metadata, 'name').value
-	debug('Kubernetes Deployment name: ' + name)
-    const ns = _k8sMapGet(metadata, 'namespace').value
-	debug('Kubernetes Deployment namespace: ' + ns)
+	const deploymentResources = []
+	const globber = await glob.create(pJoin(DIR, 'kubernetes/**/*.yaml'))
+	for await (const resource of globber.globGenerator()) {
+		// replace image placeholder
+		debug(`replacing image placeholder for "${resource}"`)
+		await exec('sed', ['-e', `s|<IMAGE>|${imageId}|`, '-i', resource])
 
-    const pKubecfg = pJoin(DIR, '.kubeconfig')
-    await writeFileSync(pKubecfg, kubeconfig)
-    await exec('kubectl', ['--kubeconfig', pKubecfg, 'apply', '-f', '-'], {
-    	input: svc,
-    })
-    // todo: de-hardcode deployment & namespace name
-    await exec('kubectl', ['--kubeconfig', pKubecfg, 'rollout', 'status', 'deployment/' + name, '--namespace', ns, '--timeout', '2m'])
+		// apply resource definition
+		debug(`applying resource definition for "${resource}"`)
+		await exec('kubectl', ['--kubeconfig', pKubecfg, 'apply', '-f', resource])
+
+		// read api kind (check if resource is a deployment)
+		let apiKind = ''
+		await exec('kubectl', ['--kubeconfig', pKubecfg, 'get', '-f', resource, '-o', 'jsonpath={.kind}'], {
+			listeners: {
+				stdout: data => { apiKind += (data.toString()) }
+			}
+		})
+		debug(`checking api kind for "${resource}": "${apiKind}"`)
+		if (apiKind.toLowerCase() === 'deployment') deploymentResources.push(resource)
+	}
+
+	for (const resource of deploymentResources) {
+		// verify rollout status for deployments
+		debug(`verifying rollout status for "${resource}"`)
+		await exec('kubectl', ['--kubeconfig', pKubecfg, 'rollout', 'status', '-f', resource, '--timeout', '2m'])
+	}
 }
 
 ;(async () => {
