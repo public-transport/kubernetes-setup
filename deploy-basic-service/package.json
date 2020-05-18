@@ -1,0 +1,31 @@
+{
+	"private": true,
+	"name": "deploy-basic-service",
+	"description": "Deploy a simple Docker-based service to the FOSS cluster.",
+	"version": "1.0.0",
+	"main": "index.js",
+	"files": [
+		"index.js",
+		"dist"
+	],
+	"author": "Jannis R <mail@jannisr.de>",
+	"homepage": "https://github.com/public-transport/kubernetes-setup/tree/master/deploy-basic-service",
+	"repository": "public-transport/kubernetes-setup",
+	"bugs": "https://github.com/public-transport/kubernetes-setup/issues",
+	"engines": {
+		"node": ">=10"
+	},
+	"dependencies": {
+		"@actions/core": "^1.2.4",
+		"@actions/exec": "^1.0.4",
+		"lodash": "^4.17.15",
+		"yaml": "^1.10.0"
+	},
+	"devDependencies": {
+		"@zeit/ncc": "^0.22.1"
+	},
+	"scripts": {
+		"build": "ncc build -s index.js -o dist",
+		"package": "npm run build"
+	}
+}
