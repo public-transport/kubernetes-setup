@@ -3,11 +3,13 @@ description: 'Deploy a simple Docker-based service to the FOSS cluster.'
 inputs:
   docker-user:
     description: 'User to log into Docker Hub as. Defaults to user initiating the GitHub Actions run.'
+    required: false
   docker-access-token:
     description: 'Access token to log into Docker Hub with.'
     required: true
   docker-repo:
     description: 'Docker Hub repo to push the image to. Defaults to the repo name.'
+    required: false
   kubernetes-config:
     description: 'Kubernetes config (a.k.a "kubeconfig"), base64-encoded.'
     required: true
