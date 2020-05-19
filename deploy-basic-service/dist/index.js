@@ -1920,19 +1920,28 @@ const DIR = GITHUB_WORKSPACE
 
 const buildDockerImage = async (dockerRepo, dockerTag) => {
 	const tag = 'publictransport/' + dockerRepo + ':' + dockerTag
-    await exec('docker', ['build', '-t', tag, '--iidfile', '/tmp/iid.txt', '.'])
-    const hash = await readFileSync('/tmp/iid.txt', {encoding: 'utf8'})
-    const id = 'publictransport/' + dockerRepo + '@' + hash
-    info('Docker image ID: ' + id) // todo: debug-level
+	await exec('docker', ['build', '-t', tag, '--iidfile', '/tmp/iid.txt', '.'])
+	const hash = await readFileSync('/tmp/iid.txt', { encoding: 'utf8' })
 
-    return {tag, hash, id}
+	return {tag, hash}
 }
 
-const pushImageToHub = async (user, token, tag) => {
-    await exec('docker', ['login', '-u', user, '--password-stdin'], {
-    	input: token,
-    })
-    await exec('docker', ['push', tag])
+const pushImageToHub = async (user, token, tag, hash) => {
+	await exec('docker', ['login', '-u', user, '--password-stdin'], {
+		input: token,
+	})
+	await exec('docker', ['push', tag])
+
+	let rawId = ''
+	await exec('docker', ['image', 'inspect', hash, '-f', '{{index .RepoDigests 0}}'], {
+		listeners: {
+			stdout: data => { rawId += (data.toString()) }
+		}
+	})
+	const id = rawId.replace(/\s/gi, '')
+	info('Docker image ID: ' + id) // todo: debug-level
+
+	return id
 }
 
 const deployToK8s = async (kubeconfig, imageId) => {
@@ -1984,12 +1993,12 @@ const deployToK8s = async (kubeconfig, imageId) => {
 	startGroup('build Docker image')
 	const {
 		tag: imageTag,
-		id: imageId,
+		hash: imageHash
 	} = await buildDockerImage(dockerRepo, dockerTag)
 	endGroup()
 
 	startGroup('push image to the publictransport org')
-	await pushImageToHub(dockerUser, dockerToken, imageTag)
+	const imageId = await pushImageToHub(dockerUser, dockerToken, imageTag, imageHash)
 	endGroup()
 
 	startGroup('deploy to Kubernetes')
