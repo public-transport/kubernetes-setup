@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: juliuste-service-account
+  namespace: juliuste
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: edit-juliuste-rb
+  namespace: juliuste
+subjects:
+- kind: User
+  name: juliuste
+  apiGroup: ""
+- kind: ServiceAccount
+  name: juliuste
+  apiGroup: ""
+roleRef:
+  kind: ClusterRole
+  name: edit
+  apiGroup: ""
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: view-logs-juliuste-rb
+  namespace: kube-logging
+subjects:
+- kind: User
+  name: juliuste
+  apiGroup: ""
+roleRef:
+  kind: ClusterRole
+  name: view
+  apiGroup: ""
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: port-forward-logs-juliuste-rb
+  namespace: kube-logging
+subjects:
+- kind: User
+  name: juliuste
+  apiGroup: ""
+roleRef:
+  kind: Role
+  name: log-port-forward
+  apiGroup: ""
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: juliuste
+  name: juliuste-ci-role
+rules:
+- apiGroups: ["", "apps", "extensions", "networking.k8s.io"]
+  resources: ["services", "deployments", "ingresses"]
+  verbs: ["create", "update", "patch", "list", "get", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: juliuste-ci-rb
+  namespace: juliuste
+subjects:
+- kind: User
+  name: juliuste-ci
+  apiGroup: ""
+roleRef:
+  kind: Role
+  name: juliuste-ci-role
+  apiGroup: ""
+---
