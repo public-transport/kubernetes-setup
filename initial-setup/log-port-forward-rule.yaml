@@ -1,9 +1,0 @@
-kind: Role
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  namespace: kube-logging
-  name: log-port-forward
-rules:
-- apiGroups: [""]
-  resources: ["pods/portforward"]
-  verbs: ["get", "list", "create"]

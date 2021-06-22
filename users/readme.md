@@ -1,6 +1,6 @@
 # Users
 
-Everyone who makes deployments on our shared kubernetes cluster has a specific **namespace** and a corresponding **user** and **service account** which have edit permissions on that namespace. Furthermore, the user also has view permissions on the namespace for our logging infrastracture. Keep in mind that **everyone can read the logs for every namespace**.
+Everyone who makes deployments on our shared kubernetes cluster has a specific **namespace** and a corresponding **user** and **service account** which have edit permissions on that namespace. Keep in mind that **everyone can read the logs for every namespace**.
 
 ## Obtaining user credentials
 

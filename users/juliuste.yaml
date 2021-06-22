@@ -22,34 +22,6 @@ roleRef:
   apiGroup: ""
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: view-logs-juliuste-rb
-  namespace: kube-logging
-subjects:
-- kind: User
-  name: juliuste
-  apiGroup: ""
-roleRef:
-  kind: ClusterRole
-  name: view
-  apiGroup: ""
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: port-forward-logs-juliuste-rb
-  namespace: kube-logging
-subjects:
-- kind: User
-  name: juliuste
-  apiGroup: ""
-roleRef:
-  kind: Role
-  name: log-port-forward
-  apiGroup: ""
----
-apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   namespace: juliuste

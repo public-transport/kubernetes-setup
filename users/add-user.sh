@@ -76,40 +76,6 @@ roleRef:
 kubectl apply -f $TEMP_DIR/edit-$USERNM-rb.yaml
 cat $TEMP_DIR/edit-$USERNM-rb.yaml >> $(dirname "$0")/$USERNM.yaml
 
-echo "apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: view-logs-$USERNM-rb
-  namespace: kube-logging
-subjects:
-- kind: User
-  name: $USERNM
-  apiGroup: \"\"
-roleRef:
-  kind: ClusterRole
-  name: view
-  apiGroup: \"\"
----" > $TEMP_DIR/view-logs-$USERNM-rb.yaml
-kubectl apply -f $TEMP_DIR/view-logs-$USERNM-rb.yaml
-cat $TEMP_DIR/view-logs-$USERNM-rb.yaml >> $(dirname "$0")/$USERNM.yaml
-
-echo "apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: port-forward-logs-$USERNM-rb
-  namespace: kube-logging
-subjects:
-- kind: User
-  name: $USERNM
-  apiGroup: \"\"
-roleRef:
-  kind: Role
-  name: log-port-forward
-  apiGroup: \"\"
----" > $TEMP_DIR/view-logs-$USERNM-rb.yaml
-kubectl apply -f $TEMP_DIR/view-logs-$USERNM-rb.yaml
-cat $TEMP_DIR/view-logs-$USERNM-rb.yaml >> $(dirname "$0")/$USERNM.yaml
-
 # read certificate authority from the local kubeconfig
 K8S_CONTEXT=$(kubectl config view --minify -o jsonpath='{.current-context}' --raw)
 K8S_CLUSTER=$(kubectl config view --minify -o jsonpath='{.contexts[?(@.name == "'$K8S_CONTEXT'")].context.cluster}' --raw)
