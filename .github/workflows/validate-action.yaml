@@ -1,0 +1,15 @@
+name: Validate action
+on: push
+jobs:
+  ci:
+    name: Ensure that the current build output is checked in
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v1
+      with:
+        node-version: 12.x
+    - name: Run build
+      run: cd deploy-basic-service && npm install && npm run package
+    - name: Check if build output matches checked in dist
+      run: git diff --exit-code
