@@ -1,5 +1,7 @@
 # Users
 
+## :warning: DEPRECATED! This repository is no longer in use, check [public-transport/infrastructure](https://github.com/public-transport/infrastructure) for our latest setup.**
+
 Everyone who makes deployments on our shared kubernetes cluster has a specific **namespace** and a corresponding **user** and **service account** which have edit permissions on that namespace. Keep in mind that **everyone can read the logs for every namespace**.
 
 ## Obtaining user credentials
